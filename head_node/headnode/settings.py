@@ -123,3 +123,28 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+### CORE ###
+privatekey= """-----BEGIN RSA PRIVATE KEY-----
+MIICWwIBAAKBgGnYZxLgkv/Dw7HfNAaX8vBdJ+B4uwx8k81t9RKHaTo1+B+pgYSk
+driUuUQbX/piONncjrWitsWu7OR6T3hBmJ4DoOks6YGGWQkQYJfauimLtrjv/pi8
+6PTeZ8nUKttLysWxm72X2So84rwH8syPMkIOmp0UnZ59ubswKcB+8pk7AgMBAAEC
+gYATqImcS/GBZ06VXqs+/kG0utiJLGMxMoIRCXcW9edpVFS9LLJNfG5AYf72007E
+JjIA5KHswkfH93EwDjdsUmKR16AFAEBWop6w3TU64tGxB3NCdH7ol/FFO+amzbai
+fIOd09lbpjqUVcegHHoRA7LwsQ+Pfsx8SEvm77pZLqq54QJBANDVpeV+smSK09yu
+E17NAG48nOg9XukormbfpXXNknAzkjMGviQM6VX0h8uccZhpXL6QH1Jnc+Mr596f
+NeTmVFcCQQCBwCUSTfoPGe71JYSRMtJFg/8Yd6zwEBZnzWf/2+RtbGpF0CZpfMiC
+D/vIs0jscCINfaZtPkMRgaSisnubDzO9AkEAphgGpgyqncS81FuvFEs/+G1E7oFB
+J3gvnapq0tL5kTuzH9pRCCMswiyGhK6cuneyR+4gu02Eoj2dYTaHitKWaQJAb9PP
+H6udLY7IaPjg/NO0br2JCul6X5098lESpW47viOGpIz1zk0B8zcbZqs+2qj6cG4v
+FlBnNZtq7d6uscG0cQJAIdSW41EO2ooyT2gB6GduVr7eSqIoItBZWco8gre/+7LT
+Jy4DGrAfzMjJDC3nKUz4bJm8eSpnSmLsTDxxk0oltQ==
+-----END RSA PRIVATE KEY-----"""
+
+publickey = """-----BEGIN PUBLIC KEY-----
+MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgGnYZxLgkv/Dw7HfNAaX8vBdJ+B4
+uwx8k81t9RKHaTo1+B+pgYSkdriUuUQbX/piONncjrWitsWu7OR6T3hBmJ4DoOks
+6YGGWQkQYJfauimLtrjv/pi86PTeZ8nUKttLysWxm72X2So84rwH8syPMkIOmp0U
+nZ59ubswKcB+8pk7AgMBAAE=
+-----END PUBLIC KEY-----"""

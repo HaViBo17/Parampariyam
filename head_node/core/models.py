@@ -16,6 +16,18 @@ class Block(models.Model):
     
     def __str__(self):
         return f"Number: {self.number} \nTimestamp: {self.timestamp}"
+
+    def export_data(self):
+        data = {
+            'timestamp': self.timestamp,
+            'file_hash': self.file_hash,
+            'transaction_hash': self.transaction_hash,
+            'prev_block_hash': self.prev_block_hash,
+            'transaction_summary_hash': self.transaction_summary_hash,
+            'data': self.data,
+            'difficulty': self.difficulty,
+        }
+        return data
     
     def get_hash(self):
         hash_object =  SHA256.new()

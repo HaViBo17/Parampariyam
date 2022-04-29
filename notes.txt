@@ -1,0 +1,2 @@
+1. compare hashes in the form of hexdigest 
+2. 

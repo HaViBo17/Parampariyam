@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'core',
+    'crispy_forms', 
 ]
 
 MIDDLEWARE = [
@@ -54,7 +56,7 @@ ROOT_URLCONF = 'headnode.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -126,7 +128,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 ### CORE ###
-privatekey= """-----BEGIN RSA PRIVATE KEY-----
+PRIVATE_KEY= """-----BEGIN RSA PRIVATE KEY-----
 MIICWwIBAAKBgGnYZxLgkv/Dw7HfNAaX8vBdJ+B4uwx8k81t9RKHaTo1+B+pgYSk
 driUuUQbX/piONncjrWitsWu7OR6T3hBmJ4DoOks6YGGWQkQYJfauimLtrjv/pi8
 6PTeZ8nUKttLysWxm72X2So84rwH8syPMkIOmp0UnZ59ubswKcB+8pk7AgMBAAEC
@@ -142,9 +144,12 @@ FlBnNZtq7d6uscG0cQJAIdSW41EO2ooyT2gB6GduVr7eSqIoItBZWco8gre/+7LT
 Jy4DGrAfzMjJDC3nKUz4bJm8eSpnSmLsTDxxk0oltQ==
 -----END RSA PRIVATE KEY-----"""
 
-publickey = """-----BEGIN PUBLIC KEY-----
+PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
+MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgGnYZxLgkv/Dw7HfNAaX8vBdJ+B4uwx8k81t9RKHaTo1+B+pgYSkdriUuUQbX/piONncjrWitsWu7OR6T3hBmJ4DoOks6YGGWQkQYJfauimLtrjv/pi86PTeZ8nUKttLysWxm72X2So84rwH8syPMkIOmp0UnZ59ubswKcB+8pk7AgMBAAE=
+-----END PUBLIC KEY-----"""
+PUBLIC_KEY2 = """
 MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgGnYZxLgkv/Dw7HfNAaX8vBdJ+B4
 uwx8k81t9RKHaTo1+B+pgYSkdriUuUQbX/piONncjrWitsWu7OR6T3hBmJ4DoOks
 6YGGWQkQYJfauimLtrjv/pi86PTeZ8nUKttLysWxm72X2So84rwH8syPMkIOmp0U
 nZ59ubswKcB+8pk7AgMBAAE=
------END PUBLIC KEY-----"""
+"""

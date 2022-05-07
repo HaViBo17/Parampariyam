@@ -153,3 +153,10 @@ uwx8k81t9RKHaTo1+B+pgYSkdriUuUQbX/piONncjrWitsWu7OR6T3hBmJ4DoOks
 6YGGWQkQYJfauimLtrjv/pi86PTeZ8nUKttLysWxm72X2So84rwH8syPMkIOmp0U
 nZ59ubswKcB+8pk7AgMBAAE=
 """
+
+CERTIFICATE = {
+    'subject_public_key' : PUBLIC_KEY,
+    'issuer_public_key' : PUBLIC_KEY,
+    'valid_till' : 1000,
+    'valid_from' : 10000
+}

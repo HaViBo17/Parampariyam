@@ -1,4 +1,6 @@
+from ipaddress import ip_address
 from django.db import models
+from rsa import PublicKey
 from Cryptodome.Hash import SHA256
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Signature import pkcs1_15
@@ -6,7 +8,7 @@ import json
 import base64
 from .methods import *
 
-# Create your models here.
+# for blockchain core
 class Block(models.Model):
     timestamp = models.IntegerField()
     nonce = models.IntegerField(default=0)
@@ -16,13 +18,16 @@ class Block(models.Model):
     transaction_summary_hash = models.CharField(max_length=1000)           # stored as hexadecimal string
     data = models.CharField(max_length=10000)                               # 1024 bit data object stored as base64 encoded string object
     difficulty = models.IntegerField()
-    number = models.IntegerField(default=0)
+    number = models.IntegerField(default=1)
     status_choices = (
         ('P', 'Pending'),
         ('M', 'Mined'),
         ('C', 'Confirmed')
     )
     status = models.CharField(max_length=1,choices=status_choices,default='P')
+    block_number = models.IntegerField(default=0)
+    transaction_summary_block = models.ForeignKey('TransactionSummaryBlock', on_delete=models.CASCADE, null=True)
+    miner = models.CharField(max_length=1000,null=True,blank=True)
     
     def __str__(self):
         return f"Number: {self.number} \nTimestamp: {self.timestamp}"
@@ -36,6 +41,8 @@ class Block(models.Model):
             'transaction_summary_hash': self.transaction_summary_hash,
             'data': self.data,
             'difficulty': self.difficulty,
+            'nonce': self.nonce,
+            'number': self.number,
         }
         return data
     
@@ -57,15 +64,30 @@ class ATransaction(models.Model):
         ('C' , 'COIN_TRANSACTION'),
         ('F' , 'FILE_TRANSACTION'),
     )
-    status = (
+    status_choices = (
         ('P' , 'PENDING'),
         ('A' , 'APPROVED'), 
     )
-    type = models.CharField(max_length=1, choices=types)
-    account_from = models.JSONField()
-    accounts_to = models.JSONField()
+    transaction_type = models.CharField(max_length=1, choices=types)
+    account_from = models.CharField(max_length=1000)
+    account_to = models.CharField(max_length=1000)
+    transaction_data = models.CharField(max_length=1000)
+    transaction_fees = models.CharField(max_length=1000)
     signature = models.CharField(max_length=1000)
-    status = models.CharField(max_length=1, default='P', choices=status)
+    status = models.CharField(max_length=1, default='P', choices=status_choices)
+
+    def export_data(self):
+        data = {
+            'type': self.type,
+            'account_from': self.account_from,
+            'account_to': self.account_to,
+            'transaction_data' : self.transaction_data,
+            'transaction_fees' : self.transaction_fees,
+            'signature': self.signature,
+            'status': self.status,
+        }
+        return data
+    
 
 class TransactionSummaryBlock(models.Model):
     accounts_from = models.JSONField()
@@ -99,17 +121,47 @@ class TransactionSummaryBlock(models.Model):
         return hash_object.hexdigest()
     
     def get_coin_transaction_hash(self):
-        hash_object =  SHA256.new()
-        for someTransaction in self.included_transactions.filter(type='C').order_by('signature'):
-            hash_object.update(base64.b64decode(someTransaction.signature))
-        return hash_object.hexdigest()
+        for someTransaction in ATransaction.objects.filter(transaction_type='C',status='P').order_by('signature'):
+            return someTransaction.signature
+        return ""
     
     def get_file_transaction_hash(self):
-        hash_object =  SHA256.new()
-        for someTransaction in self.included_transactions.filter(type='F').order_by('signature'):
-            hash_object.update(base64.b64decode(someTransaction.signature))
-        return hash_object.hexdigest()
+        for someTransaction in ATransaction.objects.filter(transaction_type='F',status='P').order_by('signature'):
+            return someTransaction.signature
+        return ""
 
 class TransactionLinkNode(models.Model):
     transaction = models.ForeignKey(ATransaction, on_delete=models.PROTECT)
     next = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, default=None)
+
+# for peer networking
+class Certificate(models.Model):
+    subject_public_key = models.CharField(max_length=1000)
+    issuer_public_key = models.CharField(max_length=1000)
+    valid_till = models.IntegerField(default=0)
+    valid_from = models.IntegerField(default=0)
+    signature = models.CharField(max_length=1000)
+
+    def export_data(self):
+        data = {
+            'subject_public_key': remove_pem(self.subject_public_key),
+            'issuer_public_key': remove_pem(self.issuer_public_key),
+            'valid_till': self.valid_till,
+            'valid_from': self.valid_from,
+            'signature': self.signature,
+        }
+        return data
+
+class Peer(models.Model):
+    public_key = models.CharField(max_length=1000)
+    certificate = models.ForeignKey(Certificate, on_delete=models.PROTECT)
+    familiarity = models.IntegerField(default=0)
+    ip_address = models.CharField(max_length=1000)
+    port = models.IntegerField(default=0)
+
+class AccountHolder(models.Model):
+    public_key = models.CharField(max_length=1000)
+    certificate = models.ForeignKey(Certificate, on_delete=models.PROTECT, null=True, blank=True)
+    balance = models.IntegerField(default=0)
+
+

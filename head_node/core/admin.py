@@ -4,3 +4,6 @@ from .models import *
 admin.site.register(Block)
 admin.site.register(ATransaction)
 admin.site.register(TransactionSummaryBlock)
+admin.site.register(Certificate)
+admin.site.register(Peer)
+admin.site.register(AccountHolder)

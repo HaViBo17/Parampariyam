@@ -8,7 +8,12 @@ from .models import *
 from headnode.settings import CERTIFICATE
 # Create your views here.
 def test(request):
-    return render(request,'main.html', {'form':newTransactionForm()})
+    context = {
+            'form':newTransactionForm(),
+            'transactions' : ATransaction.objects.all(),
+            'balance' : find_account_balance()
+        }
+    return render(request,'main.html', context )
 
 def transaction_create(request):
     if request.method == 'POST':
@@ -17,6 +22,7 @@ def transaction_create(request):
             #transaction_type = form.cleaned_data['type']
             #print(transaction_type)
             single_transaction(form.cleaned_data)
+            p
             #print(transaction_type)
 
             # except:
@@ -26,12 +32,16 @@ def transaction_create(request):
     return HttpResponse('transaction create view')
 
 def mine_block(request):
-    from .models import TransactionSummaryBlock
+    from .models import TransactionSummaryBlock, Block
     transaction_summary_block = createTransactionSummaryBlock()
     transactionSummaryHash = transaction_summary_block.get_hash()
     file_transaction_hash = transaction_summary_block.get_file_transaction_hash()
     coin_transaction_hash = transaction_summary_block.get_coin_transaction_hash()
-    previous_block_hash = coin_transaction_hash
+    block_number = Block.objects.all().count()
+    previous_block_hash = ""
+    if block_number != 0:
+        previous_block = Block.objects.get(number = block_number)
+        previous_block_hash = previous_block.get_hash()
     data = ""
     difficulty = 5
     block = createBlock(file_transaction_hash,coin_transaction_hash,previous_block_hash,transactionSummaryHash,data,difficulty)
@@ -87,8 +97,8 @@ def share_blocks(request):
     if request.method != 'GET':
         return HttpResponse('failure')
     data = []
-    for someBlock in Block.objects.all():
-        data.append(someBlock.export_data())
+    for someBlock in Block.objects.all().order_by('number'):
+        data.append(export_block(someBlock))
     data = json.dumps(data)
     return_data = {
         'blocks': data,
@@ -132,3 +142,9 @@ def get_blocks(request):
 
 def share_certificate(request):
     return JsonResponse(data=CERTIFICATE)
+
+def blocks(request):
+    data = []
+    for block in Block.objects.all().order_by('number'):
+        data.append(export_block(block))
+    return render(request,'blocks.html',{'blocks':data,'balance':find_account_balance()})

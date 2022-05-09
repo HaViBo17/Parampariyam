@@ -1,4 +1,3 @@
-
 from django.conf import settings
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Signature import pkcs1_15
@@ -51,6 +50,35 @@ def verify(somestring,signature,public_key):
         return False
     return True
 
+def export_block(block):
+    from .models import Block, ATransaction
+    file_hash = block.file_hash
+    transaction_hash = block.transaction_hash
+    file_data = {}
+    coin_data = {}
+    if file_hash:
+        file_transaction = ATransaction.objects.get(signature= file_hash)
+        file_data = file_transaction.export_data()
+    
+    if transaction_hash:
+        coin_transaction = ATransaction.objects.get(signature = transaction_hash)
+        coin_data = coin_transaction.export_data()
+    data = {
+        'timestamp': block.timestamp,
+        'file_hash': block.file_hash,
+        'transaction_hash': block.transaction_hash,
+        'prev_block_hash': block.prev_block_hash,
+        'transaction_summary_hash': block.transaction_summary_hash,
+        'data': block.data,
+        'difficulty': block.difficulty,
+        'nonce': block.nonce,
+        'number': block.number,
+        'miner' : block.miner,
+        'file_transaction': file_data,
+        'coin_transaction': coin_data
+    }
+    return data
+
 
 def single_transaction(data):
     from .models import ATransaction
@@ -67,6 +95,8 @@ def single_transaction(data):
         raise TypeError(f"Invalid Transaction Type {transaction_type}") 
     hash_object.update(int(data['transaction_fees']).to_bytes(8, byteorder='big'))
     signature = signer_without_hash(hash_object)
+    print(data['account_to'])
+    print(data)
     new_transaction = ATransaction(
         transaction_type = data['transaction_type'],
         account_from = remove_pem(settings.PUBLIC_KEY,'public'),
@@ -152,10 +182,23 @@ def get_zeros(hash):
 def mine(block, difficulty):
     for i in range(2**256):
         block.nonce = i 
-        block_hash = get_hash_block(block)
+        block_hash = block.get_hash()
         if get_zeros(block_hash) >= difficulty:
+            from .models import Block
+            block.number = Block.objects.all().count()
             block.save()
+            from .models import ATransaction
+            file_transaction = block.file_hash
+            coin_transaction = block.transaction_hash
+            file_object = ATransaction.objects.get(signature = file_transaction)
+            coin_object = ATransaction.objects.get(signature = coin_transaction)
+            file_object.status = 'C'
+            coin_object.status = 'C'
+            file_object.save()
+            coin_object.save()
             return block
+    
+
     return None
 
 def createTransactionSummaryBlock():
@@ -199,7 +242,9 @@ def createBlock(file_hash,transaction_hash,prev_block_hash,transaction_summary_h
         prev_block_hash=prev_block_hash,
         transaction_summary_hash=transaction_summary_hash,
         data=data,
-        difficulty=difficulty)
+        difficulty=difficulty,
+        miner = settings.PUBLIC_KEY
+        )
     block.save()
     return block
 
@@ -225,8 +270,38 @@ def verify_block(someBlock):
         prev_block_hash=someBlock['prev_block_hash'],
         transaction_summary_hash=someBlock['transaction_summary_hash'],
         data = someBlock['data'],
-        difficulty=someBlock['difficulty']
+        difficulty=someBlock['difficulty'],
+        miner=someBlock['miner']
     )
-    if get_zeros(tempBlock.get_hash()) >= someBlock.difficulty:
+    if get_zeros(tempBlock.get_hash()) >= someBlock['difficulty']:
         return True
     return False
+
+def find_account_balance():
+    from .models import Block, ATransaction
+    balance = 0 
+    for someBlock in Block.objects.all().order_by('number'):
+        if someBlock.miner == settings.PUBLIC_KEY:
+            balance += 10000
+            
+        
+        if someBlock.transaction_hash:
+            coin_transaction = ATransaction.objects.get(signature = someBlock.transaction_hash)
+            print(coin_transaction.transaction_fees)
+            if coin_transaction.account_from == remove_pem(settings.PUBLIC_KEY,'public'):
+                balance -= (coin_transaction.transaction_fees + int(coin_transaction.transaction_data)*1.1)
+            if coin_transaction.account_to == remove_pem(settings.PUBLIC_KEY,'public'):
+                print("yesyyssy")
+                balance  += int(coin_transaction.transaction_data)
+            if someBlock.miner == settings.PUBLIC_KEY:
+                balance += coin_transaction.transaction_fees
+        
+        if someBlock.file_hash:
+            file_transaction = ATransaction.objects.get(signature = someBlock.file_hash)
+            balance -= file_transaction.transaction_fees
+            if someBlock.miner == settings.PUBLIC_KEY:
+                balance += file_transaction.transaction_fees
+        
+        balance = int(balance)
+    return balance
+

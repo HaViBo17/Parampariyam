@@ -6,7 +6,7 @@ from Cryptodome.PublicKey import RSA
 from Cryptodome.Signature import pkcs1_15
 import json
 import base64
-from .methods import *
+from core.methods import key_cleaner, make_pem,remove_pem,key_bytes,signer_without_hash,signer,verify,export_block,single_transaction,new_transaction,get_hash_block,get_zeros,mine,createTransactionSummaryBlock,createBlock,get_alive_node,verify_block,find_account_balance
 
 # for blockchain core
 class Block(models.Model):
@@ -33,6 +33,7 @@ class Block(models.Model):
         return f"Number: {self.number} \nTimestamp: {self.timestamp}"
 
     def export_data(self):
+
         data = {
             'timestamp': self.timestamp,
             'file_hash': self.file_hash,
@@ -43,6 +44,7 @@ class Block(models.Model):
             'difficulty': self.difficulty,
             'nonce': self.nonce,
             'number': self.number,
+            'miner' : self.miner
         }
         return data
     
@@ -55,7 +57,8 @@ class Block(models.Model):
                     + bytes.fromhex(self.prev_block_hash) \
                     + bytes.fromhex(self.transaction_summary_hash) \
                     + base64.b64decode(self.data) \
-                    + (self.difficulty).to_bytes(1, byteorder='big') 
+                    + (self.difficulty).to_bytes(1, byteorder='big') \
+                    + base64.b64decode(remove_pem(self.miner,'public')) 
         hash_object.update(bytes_data)
         return hash_object.hexdigest()
 
@@ -72,13 +75,13 @@ class ATransaction(models.Model):
     account_from = models.CharField(max_length=1000)
     account_to = models.CharField(max_length=1000)
     transaction_data = models.CharField(max_length=1000)
-    transaction_fees = models.CharField(max_length=1000)
+    transaction_fees = models.IntegerField()
     signature = models.CharField(max_length=1000)
     status = models.CharField(max_length=1, default='P', choices=status_choices)
 
     def export_data(self):
         data = {
-            'type': self.type,
+            'transaction_type': self.transaction_type,
             'account_from': self.account_from,
             'account_to': self.account_to,
             'transaction_data' : self.transaction_data,
@@ -95,6 +98,7 @@ class TransactionSummaryBlock(models.Model):
     included_transactions = models.ManyToManyField(ATransaction)
 
     def get_hash(self):
+        return ""
         hash_object =  SHA256.new()
         from_dict = json.loads(self.accounts_from)
         to_dict = json.loads(self.accounts_to)

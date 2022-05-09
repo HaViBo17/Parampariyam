@@ -11,47 +11,41 @@
 <body>
     <div id="container">
         <div class="row">
-            <div class="col-4 p-4">
-                <h1>Transaction form</h1>
-                <form method="post" action="{%url 'new_transaction'%}">
-                    {% load crispy_forms_tags %}
-                    {% csrf_token %}
-                    {{form | crispy}}
-                    <button type="submit">Submit</button>
-                </form>
+            <div class="col-4 border-right">
+                <h1>My account</h1>
+                <h3>Balance <span class="text-muted">{{ balance }}</span></h3>
             </div>
-            <div class="col-4 border-left">
-                <h1>All Transactions</h1>
-                {% for someTransaction in transactions %}
+            <div class="col-8 border-right">
+                <h2>All Blocks</h2>
+                {% for someBlock in blocks %}
                     <div class="card">
                         <div class="card-body">
                             <ul>
                                 <li>
-                                    Transaction Type : {{ someTransaction.transaction_type }}
+                                    Block Number : {{ someBlock.number }}
                                 </li>
                                 <li>
-                                    Account from : <br><span class="d-inline-block text-truncate" style="max-width: 400px;">{{ someTransaction.account_from}}</span>
+                                    File Hash : {{ someBlock.file_hash }}
                                 </li>
                                 <li>
-                                    Account to : <br><span class="d-inline-block text-truncate" style="max-width: 400px;">{{ someTransaction.account_to}}</span>
+                                    Transaction Hash : {{ someBlock.transaction_hash }}
                                 </li>
                                 <li>
-                                    Transaction Data : <br><span class="d-inline-block text-truncate" style="max-width: 400px;">{{ someTransaction.transaction_data}}</span>
+                                    Previous Block Hash : {{ someBlock.prev_block_hash }}
                                 </li>
                                 <li>
-                                    Transaction Fees : {{ someTransaction.transaction_fees}}
+                                    Nonce : {{ someBlock.nonce }}
                                 </li>
                                 <li>
-                                    Transaction Status : {{ someTransaction.status}}
+                                    Difficulty : {{ someBlock.difficulty }}
+                                </li>
+                                <li>
+                                    Miner : {{ someBlock.miner }}
                                 </li>
                             </ul>
                         </div>
-                    </div>
+                    </div>    
                 {% endfor %}
-            </div>
-            <div class="col-4 border-left">
-                <h1>My account</h1>
-                <h3>Balance <span class="text-muted">{{ balance }}</span></h3>
             </div>
         </div>
                 
